@@ -49,10 +49,10 @@ class DRIHttpAuthorizer(_AbstractAuthorizer):
 
         try:
             with closing(requests.head(auth_fp, verify=False)) as response:
-		       if response.status_code is 200:
-		           return {"status": "ok"}
-		       else:
-		       	   return {"status": "deny"}
+                if response.status_code is 200:
+                    return {"status": "ok"}
+                else:
+                    return {"status": "deny"}
 
         except requests.exceptions.MissingSchema as ms:
             message = 'Server Side Error: Error making authentication request.'
