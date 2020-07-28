@@ -85,12 +85,11 @@ class RadosS3Resolver(SimpleHTTPResolver):
 
         bucket_suffix, keyname = ident.split(self.delimiter, 1)
 
-        if self.ident_suffix:
+        if self.ident_suffix and keyname != bucket_suffix:
             keyname = u'{0}_{1}'.format(keyname, self.ident_suffix)
 
         bucketname = '.'.join([self.bucket,bucket_suffix])
         logger.debug('Getting img from Rados S3. bucketname, keyname: %s, %s' % (bucketname, keyname))
-
         conn = boto.connect_s3(
               aws_access_key_id = self.access_key,
               aws_secret_access_key = self.secret_key,
@@ -100,13 +99,13 @@ class RadosS3Resolver(SimpleHTTPResolver):
         )
 
         bucket = conn.get_bucket(bucketname)
-        key = bucket.get_key(keyname)
-        auth_url = key.generate_url(3600, query_auth=True)
+        list = bucket.list(prefix=keyname)
+        for key in list:
+            # Get the generic options
+            options = self.request_options()
+            return(key.generate_url(3600, query_auth=True), options)
 
-        # Get the generic options
-        options = self.request_options()
-
-        return(key.generate_url(3600, query_auth=True), options)
+        return None
 
     def request_options(self):
         # currently no username/password supported
