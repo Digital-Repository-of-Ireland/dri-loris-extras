@@ -3,6 +3,8 @@ from __future__ import absolute_import
 from logging import getLogger
 import requests
 
+import base64
+
 from contextlib import closing
 
 from .webapp import LorisRequest
