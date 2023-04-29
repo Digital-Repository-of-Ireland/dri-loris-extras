@@ -35,6 +35,12 @@ class DRIHttpAuthorizer(_AbstractAuthorizer):
         return True
 
     def is_authorized(self, info, request):
+        auth_params = None
+
+        if 'Authorization' in request.headers:
+            header = request.headers.get('Authorization')
+            auth_params = self._extract_credentials(header)
+
         loris_request = LorisRequest(request)
         request_type = loris_request.request_type
 
@@ -46,6 +52,8 @@ class DRIHttpAuthorizer(_AbstractAuthorizer):
           action = 'info'
 
         auth_fp = "%s/%s?method=%s" % (self.authorized_url, loris_request.ident, action)
+        if auth_params is not None:
+            auth_fp = auth_fp + auth_params
 
         try:
             with closing(requests.head(auth_fp, verify=False)) as response:
@@ -61,4 +69,9 @@ class DRIHttpAuthorizer(_AbstractAuthorizer):
 
     def get_services_info(self, info):
         return {"service": {}}
+
+    def _extract_credentials(self, header):
+        auth_header = base64.b64decode(header.replace('Basic','').strip()).decode('ascii').split(':')
+        auth_params = '&user_email=%s&user_token=%s' % (auth_header[0], auth_header[1])
+        return auth_params
 
